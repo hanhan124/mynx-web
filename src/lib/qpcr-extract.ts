@@ -1,13 +1,9 @@
-import type { WorkBook, WorkSheet } from "xlsx";
-import * as XLSX from "xlsx";
+import type ExcelJS from "exceljs";
 
 /**
  * 从 qPCR 计算结果中抽取「基因×组×表达量」矩阵，供 InfiniSynapse Agent 解读。
  * 读取 `Summary_All_Genes` sheet（由 `calculateQpcr` 写入）。
  * 不修改原 workbook，只读。
- *
- * 网页版：workbook 参数类型从 ExcelJS.Workbook 改为 SheetJS WorkBook，
- * 用 `XLSX.utils.sheet_to_json(ws, {header:1})` 读取。
  */
 
 export interface ExtractedMatrix {
@@ -32,45 +28,39 @@ function cellText(val: unknown): string {
   return String(val).trim();
 }
 
-/** 把工作表读成 AOA（二维数组）。 */
-function sheetToAoa(ws: WorkSheet): unknown[][] {
-  return XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: true, defval: undefined }) as unknown[][];
-}
-
 /** 抽取矩阵。workbook 必须已含 `Summary_All_Genes` sheet（即 qPCR 已计算）。 */
-export function extractInsightMatrix(workbook: WorkBook): ExtractedMatrix {
-  const sheet = workbook.Sheets[SUMMARY_SHEET];
+export function extractInsightMatrix(workbook: ExcelJS.Workbook): ExtractedMatrix {
+  const sheet = workbook.getWorksheet(SUMMARY_SHEET);
   if (!sheet) {
     throw new Error(`未找到 ${SUMMARY_SHEET} 工作表，请先完成 qPCR 计算`);
   }
-
-  const aoa = sheetToAoa(sheet);
-  if (aoa.length < 2) {
+  if (sheet.rowCount < 2) {
     throw new Error(`${SUMMARY_SHEET} 没有数据行`);
   }
 
+  const headerRow = sheet.getRow(1);
+  const colCount = sheet.columnCount;
   const headers: string[] = [];
-  const headerRow = aoa[0] ?? [];
-  for (const h of headerRow) {
-    const text = cellText(h);
-    if (!text) break;
-    headers.push(text);
+  for (let c = 1; c <= colCount; c++) {
+    const h = cellText(headerRow.getCell(c).value);
+    if (!h) break;
+    headers.push(h);
   }
   if (headers.length === 0) {
     throw new Error(`${SUMMARY_SHEET} 表头为空`);
   }
 
-  const geneCol0 = headers.indexOf("Gene"); // 0-based
-  const methodCol0 = headers.indexOf("Method");
-  if (geneCol0 === -1) {
+  const geneCol = headers.indexOf("Gene") + 1;
+  const methodCol = headers.indexOf("Method") + 1;
+  if (geneCol === 0) {
     throw new Error(`${SUMMARY_SHEET} 缺少 Gene 列`);
   }
 
   // 找最后一个有数据的行
-  let lastDataRow0 = aoa.length - 1; // 0-based index of last row
-  for (let r = aoa.length - 1; r >= 1; r--) {
-    if (cellText(aoa[r]?.[geneCol0])) {
-      lastDataRow0 = r;
+  let lastDataRow = sheet.rowCount;
+  for (let r = sheet.rowCount; r >= 2; r--) {
+    if (cellText(sheet.getRow(r).getCell(geneCol).value)) {
+      lastDataRow = r;
       break;
     }
   }
@@ -83,22 +73,22 @@ export function extractInsightMatrix(workbook: WorkBook): ExtractedMatrix {
   const seen = new Set<string>();
   let methodNote: string | null = null;
 
-  for (let r = 1; r <= lastDataRow0; r++) {
-    const row = aoa[r] ?? [];
+  for (let r = 2; r <= lastDataRow; r++) {
+    const row = sheet.getRow(r);
     const cells: string[] = [];
-    for (let c = 0; c < headers.length; c++) {
-      cells.push(cellText(row[c]).replace(/\|/g, "\\|"));
+    for (let c = 1; c <= headers.length; c++) {
+      cells.push(cellText(row.getCell(c).value).replace(/\|/g, "\\|"));
     }
     if (cells.every((c) => c === "")) continue;
     lines.push(`| ${cells.join(" | ")} |`);
 
-    const gene = cells[geneCol0];
+    const gene = cells[geneCol - 1];
     if (gene && !seen.has(gene)) {
       seen.add(gene);
       genes.push(gene);
     }
-    if (methodNote === null && methodCol0 >= 0) {
-      const m = cells[methodCol0];
+    if (methodNote === null && methodCol > 0) {
+      const m = cells[methodCol - 1];
       if (m) methodNote = m;
     }
   }
@@ -107,14 +97,12 @@ export function extractInsightMatrix(workbook: WorkBook): ExtractedMatrix {
     markdown: lines.join("\n"),
     genes,
     methodNote,
-    rows: lastDataRow0, // 行数（不含表头）= 最后一个 1-based 行号 - 1 = lastDataRow0
+    rows: lastDataRow - 1,
   };
 }
 
 /** 判断 workbook 是否已具备可解读的 qPCR 结果。 */
-export function hasInsightData(workbook: WorkBook): boolean {
-  const sheet = workbook.Sheets[SUMMARY_SHEET];
-  if (!sheet) return false;
-  const aoa = sheetToAoa(sheet);
-  return aoa.length >= 2;
+export function hasInsightData(workbook: ExcelJS.Workbook): boolean {
+  const sheet = workbook.getWorksheet(SUMMARY_SHEET);
+  return !!sheet && sheet.rowCount >= 2;
 }

@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Sidebar from "@/components/Sidebar";
+import ToastContainer from "@/components/Toast";
 import Home from "@/pages/Home";
-import { tools } from "@/lib/tools";
 
 const QpcrPage = lazy(() => import("@/pages/qPCR/QpcrPage"));
 const TiffPage = lazy(() => import("@/pages/tiff/TiffPage"));
@@ -22,6 +22,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </main>
+      <ToastContainer />
     </div>
   );
 }

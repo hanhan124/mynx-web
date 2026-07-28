@@ -1,0 +1,225 @@
+/* ========= 应用布局 ========= */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ========= 标题栏 — macOS 风格 ========= */
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 8px 0 14px;
+  background: var(--bg-titlebar);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border-bottom: 0.5px solid var(--separator);
+}
+
+.title-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.title-bar-mark {
+  flex: 0 0 auto;
+}
+
+.title-bar-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-left: 4px;
+  letter-spacing: -0.01em;
+}
+
+.title-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* macOS: window controls on the left side */
+.title-bar-controls--left {
+  order: -1;
+  margin-right: auto;
+  padding-left: 0;
+}
+
+.title-bar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  transition: background 160ms var(--ease-smooth), color 160ms var(--ease-smooth);
+}
+
+.title-bar-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.title-bar-btn--active {
+  color: var(--accent);
+}
+
+.title-bar-btn--active:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.title-bar-btn--close:hover {
+  background: var(--red);
+  color: white;
+}
+
+/* ========= 侧边栏 — Fluent 2 Nav Rail (保留微软设计风格) =========
+ * 唯一保留 Fluent 2 风格的区域：窄竖排导航栏 + 4px 圆角 +
+ * 药丸形活跃指示器 + Mica 材质背景。 */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+  min-width: 48px;
+  padding: 4px 0 8px;
+  gap: 2px;
+  /* Mica 材质：更重模糊 + 饱和度提升 */
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(60px) saturate(160%);
+  -webkit-backdrop-filter: blur(60px) saturate(160%);
+  border-right: 0.5px solid var(--separator);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  width: 100%;
+  padding: 4px 0;
+}
+
+/* Fluent 2 Nav Rail item — 4px 圆角（比苹果的 10px 更锐利） */
+.sidebar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  transition: background 120ms var(--ease-smooth), color 120ms var(--ease-smooth);
+  position: relative;
+}
+
+.sidebar-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-btn:active {
+  background: var(--bg-hover);
+  transition-duration: 60ms;
+}
+
+.sidebar-btn--active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* 活跃指示器：Fluent 2 药丸形竖条 */
+.sidebar-btn--active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  border-radius: var(--radius-circular);
+  background: var(--accent);
+}
+
+.sidebar-btn--active:hover {
+  background: var(--accent-soft-hover);
+  color: var(--accent);
+}
+
+.sidebar-footer {
+  padding: 6px 0 0;
+  border-top: 0.5px solid var(--separator);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+/* ========= 页面布局 — macOS 风格 ========= */
+.page-shell {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.panel-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-title h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.panel-title p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 1px 0 0;
+}

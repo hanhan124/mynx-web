@@ -1,51 +1,58 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { IconCircleCheckFilled, IconCircleXFilled, IconInfoCircleFilled } from "@tabler/icons-react";
 
 export type ToastType = "success" | "error" | "info";
 
-interface ToastItem {
+interface ToastMessage {
   id: number;
   text: string;
   type: ToastType;
 }
 
 let toastId = 0;
-const listeners = new Set<(items: ToastItem[]) => void>();
-let items: ToastItem[] = [];
+let listeners: ((msg: ToastMessage) => void)[] = [];
 
-export function showToast(text: string, type: ToastType = "info"): void {
-  const item: ToastItem = { id: ++toastId, text, type };
-  items = [...items, item];
-  listeners.forEach((fn) => fn(items));
-  setTimeout(() => {
-    items = items.filter((i) => i.id !== item.id);
-    listeners.forEach((fn) => fn(items));
-  }, 3500);
+export function showToast(text: string, type: ToastType = "info") {
+  const msg: ToastMessage = { id: ++toastId, text, type };
+  listeners.forEach((fn) => fn(msg));
 }
 
+const ICONS: Record<ToastType, typeof IconCircleCheckFilled> = {
+  success: IconCircleCheckFilled,
+  error: IconCircleXFilled,
+  info: IconInfoCircleFilled,
+};
+
 export default function ToastContainer() {
-  const [current, setCurrent] = useState<ToastItem[]>([]);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = useCallback((msg: ToastMessage) => {
+    setToasts((prev) => [...prev, msg]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== msg.id));
+    }, 3000);
+  }, []);
 
   useEffect(() => {
-    listeners.add(setCurrent);
+    listeners.push(addToast);
     return () => {
-      listeners.delete(setCurrent);
+      listeners = listeners.filter((fn) => fn !== addToast);
     };
-  }, []);
+  }, [addToast]);
+
+  if (toasts.length === 0) return null;
 
   return (
     <div className="toast-container">
-      {current.map((item) => (
-        <div key={item.id} className={`toast toast--${item.type}`}>
-          {item.text}
-        </div>
-      ))}
+      {toasts.map((toast) => {
+        const Icon = ICONS[toast.type];
+        return (
+          <div key={toast.id} className={`toast ${toast.type}`}>
+            <Icon size={16} stroke={1.75} className="toast-icon" />
+            <span>{toast.text}</span>
+          </div>
+        );
+      })}
     </div>
   );
-}
-
-/** Hook for components that need to trigger toasts. */
-export function useToast() {
-  return useCallback((text: string, type: ToastType = "info") => {
-    showToast(text, type);
-  }, []);
 }

@@ -1,0 +1,138 @@
+:root {
+  color-scheme: dark;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 圆角阶梯（静态，2026 规范：外容器 20 / 卡片 16 / 内部组件 10 / 内联 6） */
+  --radius-xl: 20px; /* 最大的浮层：弹窗、loading、update 通知 */
+  --radius-lg: 16px; /* 外层容器：卡片、toast */
+  --radius-md: 10px; /* 内部组件：按钮、表单控件、提示条、列表项 */
+  --radius-sm: 6px;  /* 更小的内联元素：代码块、标签、小徽章 */
+  /* 兼容旧引用名 */
+  --radius-control: 10px;
+  --radius-overlay: 16px;
+  --radius-circular: 9999px;
+
+  /* 间距阶梯 */
+  --space-xxs: 2px;
+  --space-xs: 4px;
+  --space-s: 8px;
+  --space-m: 12px;
+  --space-l: 16px;
+  --space-xl: 24px;
+}
+
+/* macOS 26 暗色 (Tahoe) */
+[data-theme="graphite"] {
+  color-scheme: dark;
+  --bg-primary: #1a1a1c;
+  --bg-secondary: #2a2a2d;
+  --bg-card: #2c2c2e;
+  --bg-elevated: #343437;
+  --bg-hover: rgba(255, 255, 255, 0.055);
+  --bg-active: rgba(10, 132, 255, 0.16);
+  --bg-glass: rgba(26, 26, 28, 0.68);
+  --bg-sidebar: rgba(36, 36, 39, 0.72);
+  --bg-titlebar: rgba(36, 36, 39, 0.74);
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.56);
+  --text-tertiary: rgba(255, 255, 255, 0.36);
+  --text-disabled: rgba(255, 255, 255, 0.36);
+  --accent: #0a84ff;
+  --accent-rgb: 10, 132, 255;
+  --accent-hover: #3d9bff;
+  --accent-pressed: #0064d6;
+  --accent-soft: rgba(10, 132, 255, 0.13);
+  --accent-soft-hover: rgba(10, 132, 255, 0.17);
+  --stroke: rgba(255, 255, 255, 0.07);
+  --stroke-strong: rgba(255, 255, 255, 0.11);
+  --stroke-focus: rgba(255, 255, 255, 0.10);
+  --separator: rgba(255, 255, 255, 0.055);
+  --green: #30d158;
+  --green-rgb: 48, 209, 88;
+  --success: #30d158;
+  --success-rgb: 48, 209, 88;
+  --red: #ff453a;
+  --red-rgb: 255, 69, 58;
+  --error: #ff453a;
+  --error-rgb: 255, 69, 58;
+  --orange: #ff9f0a;
+  --orange-rgb: 255, 159, 10;
+  --warning: #ff9f0a;
+  --warning-rgb: 255, 159, 10;
+  --severe: #ff453a;
+  /* 兼容旧引用 */
+  --fill-control: rgba(255, 255, 255, 0.08);
+  --fill-control-hover: rgba(255, 255, 255, 0.04);
+  --fill-control-active: rgba(255, 255, 255, 0.03);
+  --fill-subtle: rgba(255, 255, 255, 0.035);
+  /* 静态微深度：极轻双色线性渐变，模拟硬质叠层（零重绘） */
+  --surface-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+  /* 2026 阴影：更柔和、更分散，带轻微环境色吸收 */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.20), 0 1px 3px rgba(0, 0, 0, 0.10);
+  --shadow-flyout: 0 2px 8px rgba(0, 0, 0, 0.24), 0 8px 24px rgba(0, 0, 0, 0.16);
+  --shadow-dialog: 0 12px 40px rgba(0, 0, 0, 0.36), 0 4px 12px rgba(0, 0, 0, 0.20);
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-flyout);
+  --shadow-lg: var(--shadow-dialog);
+  --shadow-accent: 0 4px 14px rgba(10, 132, 255, 0.28);
+  --accent-gradient: linear-gradient(135deg, #0a84ff 0%, #0064d6 100%);
+  --focus-ring: 0 0 0 3px rgba(10, 132, 255, 0.32);
+}
+
+/* macOS 26 亮色 (Tahoe) */
+[data-theme="pearl"] {
+  color-scheme: light;
+  --bg-primary: #f4f4f6;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.032);
+  --bg-active: rgba(0, 122, 255, 0.09);
+  --bg-glass: rgba(244, 244, 246, 0.68);
+  --bg-sidebar: rgba(240, 240, 242, 0.72);
+  --bg-titlebar: rgba(245, 245, 247, 0.74);
+  --text-primary: rgba(0, 0, 0, 0.88);
+  --text-secondary: rgba(0, 0, 0, 0.50);
+  --text-tertiary: rgba(0, 0, 0, 0.34);
+  --text-disabled: rgba(0, 0, 0, 0.34);
+  --accent: #007aff;
+  --accent-rgb: 0, 122, 255;
+  --accent-hover: #3395ff;
+  --accent-pressed: #005ed4;
+  --accent-soft: rgba(0, 122, 255, 0.075);
+  --accent-soft-hover: rgba(0, 122, 255, 0.11);
+  --stroke: rgba(0, 0, 0, 0.055);
+  --stroke-strong: rgba(0, 0, 0, 0.095);
+  --stroke-focus: rgba(0, 0, 0, 0.08);
+  --separator: rgba(0, 0, 0, 0.055);
+  --green: #34c759;
+  --green-rgb: 52, 199, 89;
+  --success: #34c759;
+  --success-rgb: 52, 199, 89;
+  --red: #ff3b30;
+  --red-rgb: 255, 59, 48;
+  --error: #ff3b30;
+  --error-rgb: 255, 59, 48;
+  --orange: #ff9500;
+  --orange-rgb: 255, 149, 0;
+  --warning: #ff9500;
+  --warning-rgb: 255, 149, 0;
+  --severe: #ff3b30;
+  --fill-control: rgba(0, 0, 0, 0.06);
+  --fill-control-hover: rgba(0, 0, 0, 0.035);
+  --fill-control-active: rgba(0, 0, 0, 0.025);
+  --fill-subtle: rgba(0, 0, 0, 0.025);
+  --surface-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0));
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.045), 0 1px 3px rgba(0, 0, 0, 0.035);
+  --shadow-flyout: 0 2px 8px rgba(0, 0, 0, 0.055), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-dialog: 0 12px 40px rgba(0, 0, 0, 0.11), 0 4px 12px rgba(0, 0, 0, 0.05);
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-flyout);
+  --shadow-lg: var(--shadow-dialog);
+  --shadow-accent: 0 4px 14px rgba(0, 122, 255, 0.24);
+  --accent-gradient: linear-gradient(135deg, #007aff 0%, #005ed4 100%);
+  --focus-ring: 0 0 0 3px rgba(0, 122, 255, 0.28);
+}

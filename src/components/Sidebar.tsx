@@ -1,42 +1,100 @@
-import { NavLink } from "react-router-dom";
-import { IconHome, IconDna, IconPhoto, IconBrain } from "@tabler/icons-react";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useTheme } from "@/hooks/useTheme";
+import Modal from "@/components/Modal";
+import ThemePicker from "@/components/ThemePicker";
+import AboutModal from "@/components/AboutModal";
+import { IconHomeFilled, IconWorldFilled, IconPaletteFilled, IconInfoCircleFilled } from "@tabler/icons-react";
+import { tools } from "@/lib/tools";
 
 const navItems = [
-  { to: "/", label: "首页", icon: IconHome, end: true },
-  { to: "/qpcr", label: "qPCR", icon: IconDna, end: false },
-  { to: "/tiff", label: "TIFF", icon: IconPhoto, end: false },
-  { to: "/insight", label: "AI 解读", icon: IconBrain, end: false },
+  { icon: IconHomeFilled, label: "主页", path: "/" },
+  ...tools
+    .filter((t) => t.showInSidebar)
+    .map((t) => ({ icon: t.icon, label: t.navLabel, path: t.path })),
 ];
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { theme, setTheme } = useTheme();
+  const [showAbout, setShowAbout] = useState(false);
+  const [showThemes, setShowThemes] = useState(false);
+
   return (
-    <nav className="sidebar">
-      <div className="sidebar-brand">Mynx</div>
-      <div className="sidebar-nav">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) =>
-              `sidebar-item${isActive ? " sidebar-item--active" : ""}`
-            }
+    <>
+      <div className="sidebar">
+        <div className="sidebar-nav">
+          {navItems.map((item) => {
+            const active = location.pathname === item.path;
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.path}
+                className={`sidebar-btn ${active ? "sidebar-btn--active" : ""}`}
+                onClick={() => navigate(item.path)}
+                title={item.label}
+              >
+                <Icon size={16} stroke={2} />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="sidebar-footer">
+          <button
+            className="sidebar-btn"
+            title="网站"
+            onClick={() => {
+              window.open("https://www.fanguanghan.homes", "_blank");
+            }}
           >
-            <item.icon size={22} stroke={1.75} />
-            <span className="sidebar-label">{item.label}</span>
-          </NavLink>
-        ))}
+            <IconWorldFilled size={16} stroke={2} />
+          </button>
+          <button
+            className="sidebar-btn"
+            title="主题"
+            onClick={() => setShowThemes(true)}
+          >
+            <IconPaletteFilled size={16} stroke={2} />
+          </button>
+          <button
+            className="sidebar-btn"
+            title="关于"
+            onClick={() => setShowAbout(true)}
+          >
+            <IconInfoCircleFilled size={16} stroke={2} />
+          </button>
+        </div>
       </div>
-      <div className="sidebar-footer">
-        <a
-          href="https://github.com/hanhan124/mynx"
-          target="_blank"
-          rel="noreferrer"
-          className="sidebar-github"
+
+      <Modal
+        open={showThemes}
+        onClose={() => setShowThemes(false)}
+        title="主题设置"
+      >
+        <div
+          style={{
+            marginBottom: 12,
+            fontSize: 12,
+            color: "var(--text-secondary)",
+          }}
         >
-          GitHub
-        </a>
-      </div>
-    </nav>
+          选择配色风格
+        </div>
+        <ThemePicker
+          value={theme}
+          onSelect={(next) => {
+            setTheme(next);
+            setShowThemes(false);
+          }}
+        />
+      </Modal>
+
+      <AboutModal
+        open={showAbout}
+        onClose={() => setShowAbout(false)}
+      />
+    </>
   );
 }

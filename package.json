@@ -10,12 +10,14 @@
   },
   "dependencies": {
     "@tabler/icons-react": "^3.44.0",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.1",
+    "marked": "^12.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.0",
-    "xlsx": "^0.18.5",
     "utif2": "^4.0.1",
-    "marked": "^12.0.0"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

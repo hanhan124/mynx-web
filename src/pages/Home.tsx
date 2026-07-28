@@ -1,29 +1,49 @@
-import { Link } from "react-router-dom";
-import { IconDna, IconPhoto, IconBrain } from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
+import { IconArrowBadgeRight } from "@tabler/icons-react";
+import AppMark from "@/components/AppMark";
+import WeatherWidget from "@/components/WeatherWidget";
 import { tools } from "@/lib/tools";
 
 export default function Home() {
+  const navigate = useNavigate();
+
   return (
     <div className="home-shell">
-      <div className="home-hero">
-        <h1 className="home-title">Mynx</h1>
-        <p className="home-subtitle">科研数据处理工具 · 浏览器版</p>
-        <p className="home-desc">
-          qPCR 数据分析、TIFF 图片转换、AI 生物学解读 —— 全部在浏览器中完成，无需安装。
-        </p>
+      <div className="home-brand">
+        <AppMark size={40} />
+        <div>
+          <div className="home-title">Mynx</div>
+          <div className="home-subtitle">好用的工具，都在这里</div>
+        </div>
       </div>
-      <div className="home-cards">
-        {tools.map((tool) => (
-          <Link key={tool.id} to={tool.path} className="home-card" style={{ "--accent": tool.accent } as React.CSSProperties}>
-            <div className="home-card-icon" style={{ background: tool.accent }}>
-              <tool.icon size={28} color="white" stroke={1.5} />
-            </div>
-            <div className="home-card-body">
-              <h2 className="home-card-title">{tool.title}</h2>
-              <p className="home-card-desc">{tool.description}</p>
-            </div>
-          </Link>
-        ))}
+
+      <WeatherWidget />
+
+      <div className="tool-grid">
+        {tools.map((tool) => {
+          const Icon = tool.icon;
+          return (
+            <button
+              key={tool.path}
+              className="tool-card"
+              onClick={() => navigate(tool.path)}
+            >
+              <div className="tool-card-icon" style={{ background: tool.accent }}>
+                <Icon size={18} color="white" stroke={1.75} />
+              </div>
+              <div className="tool-card-body">
+                <span className="tool-card-title">{tool.title}</span>
+                <span className="tool-card-desc">{tool.description}</span>
+              </div>
+              <IconArrowBadgeRight size={14} stroke={1.75} className="tool-card-arrow" />
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="home-footer">
+        <span className="home-footer-line">Mynx · Tauri + React + Rust</span>
+        <span className="home-footer-line">© 2026 Han · MIT License</span>
       </div>
     </div>
   );
