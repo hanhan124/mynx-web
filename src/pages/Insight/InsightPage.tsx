@@ -31,8 +31,7 @@ export default function InsightPage() {
 
   const [userPrompt, setUserPrompt] = useState(DEFAULT_PROMPT);
   const [running, setRunning] = useState(false);
-  const [progressPercent, setProgressPercent] = useState(0);
-  const [progressText, setProgressText] = useState("");
+  const [agentLog, setAgentLog] = useState<string[]>([]);
   const [taskId, setTaskId] = useState("");
   const [result, setResult] = useState<InsightResult | null>(null);
   const cancelledRef = useRef(false);
@@ -116,8 +115,7 @@ export default function InsightPage() {
     }
     setRunning(true);
     setResult(null);
-    setProgressPercent(1);
-    setProgressText("准备中...");
+    setAgentLog([]);
     setTaskId("");
     cancelledRef.current = false;
 
@@ -127,24 +125,20 @@ export default function InsightPage() {
         (e: InsightEvent) => {
           switch (e.kind) {
             case "taskId": setTaskId(e.taskId); break;
-            case "progress":
-              setProgressPercent(e.percent);
-              setProgressText(e.text);
+            case "message":
+              setAgentLog((prev) => [...prev, e.text]);
               break;
             case "error":
-              setProgressText(e.text);
+              setAgentLog((prev) => [...prev, `❌ ${e.text}`]);
               break;
             case "done":
-              setProgressPercent(100);
-              setProgressText("报告生成完成");
+              setAgentLog((prev) => [...prev, "✅ 报告生成完成"]);
               break;
           }
         },
         () => cancelledRef.current,
       );
       setResult(r);
-      setProgressPercent(100);
-      setProgressText("报告生成完成");
       // 暂存 Markdown 报告到 IndexedDB
       if (r.reportMarkdown) {
         const { saveFile } = await import("@/lib/storage");
@@ -152,7 +146,7 @@ export default function InsightPage() {
       }
       showToast("报告生成完成，已暂存", "success");
     } catch (e) {
-      setProgressText(`失败: ${e instanceof Error ? e.message : String(e)}`);
+      setAgentLog((prev) => [...prev, `❌ 失败: ${e instanceof Error ? e.message : String(e)}`]);
       showToast(`解读失败: ${e instanceof Error ? e.message : String(e)}`, "error");
     } finally {
       setRunning(false);
@@ -269,35 +263,37 @@ export default function InsightPage() {
         </div>
       </div>
 
-      {/* 进度 */}
-      {(running || progressPercent > 0) && (
+      {/* Agent 回复流 */}
+      {(running || agentLog.length > 0) && (
         <div className="card">
-          <div className="card-title"><span className="step-num">2</span><span>{running ? "执行中" : "完成"}</span></div>
+          <div className="card-title">
+            <span className="step-num">2</span>
+            <span>{running ? "执行中" : "完成"}</span>
+            {running && <div className="loading-spinner" style={{ width: 14, height: 14, borderWidth: 2, marginLeft: "auto" }} />}
+          </div>
           <div className="card-body">
             {taskId && <div className="meta">taskId: {taskId}</div>}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              {running && <div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
-              <span style={{ fontSize: 14, fontWeight: 500 }}>{progressText || "等待..."}</span>
-            </div>
-            {/* 进度条 */}
             <div style={{
-              width: "100%",
-              height: 6,
+              maxHeight: 280,
+              overflowY: "auto",
               background: "var(--bg-hover)",
-              borderRadius: 3,
-              overflow: "hidden",
+              borderRadius: 8,
+              padding: 12,
+              fontFamily: "ui-monospace, 'SF Mono', Consolas, monospace",
+              fontSize: 12.5,
+              lineHeight: 1.6,
+              color: "var(--text-secondary)",
+              WebkitOverflowScrolling: "touch",
             }}>
-              <div style={{
-                width: `${progressPercent}%`,
-                height: "100%",
-                background: "var(--accent)",
-                borderRadius: 3,
-                transition: "width 0.4s ease",
-              }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 11, color: "var(--text-tertiary)" }}>
-              <span>{progressPercent}%</span>
-              <span>{running ? "请稍候..." : "完成"}</span>
+              {agentLog.length === 0 && <span style={{ color: "var(--text-tertiary)" }}>等待 Agent 响应...</span>}
+              {agentLog.map((line, i) => (
+                <div key={i} style={{
+                  marginBottom: 4,
+                  color: line.startsWith("❌") ? "var(--red)" : line.startsWith("✅") ? "var(--green)" : "var(--text-secondary)",
+                }}>
+                  {line}
+                </div>
+              ))}
             </div>
           </div>
         </div>
