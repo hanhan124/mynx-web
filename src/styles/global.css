@@ -224,66 +224,14 @@ a:hover {
   text-decoration: underline;
 }
 
-/* ========= 网页版专用：Modal + StoragePanel ========= */
+/* ========= 网页版专用：StoragePanel 样式 =========
+ * Modal 复用桌面端 components.css 的 .modal-overlay / .modal-box / .modal-header / .modal-close-btn
+ * 不再自己定义 .modal 类（会和桌面端冲突）
+ */
 
+/* 确保 modal-overlay 在 sidebar 之上 */
 .modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl, 16px);
-  box-shadow: var(--shadow-dialog, 0 8px 32px rgba(0,0,0,0.2));
-  max-width: 480px;
-  width: 90%;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--separator);
-}
-
-.modal--wide {
-  max-width: 560px;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--separator);
-}
-
-.modal-header h2 {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-}
-
-.modal-close:hover {
-  background: var(--bg-hover);
-}
-
-.modal-body {
-  padding: 16px 20px;
-  overflow-y: auto;
-  flex: 1;
+  z-index: 500 !important;
 }
 
 /* Storage list */
@@ -299,7 +247,7 @@ a:hover {
   gap: 12px;
   padding: 10px 12px;
   background: var(--bg-hover);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   border: 1px solid var(--separator);
 }
 
@@ -326,9 +274,9 @@ a:hover {
 
 .storage-tag {
   padding: 1px 6px;
-  background: var(--accent-soft, rgba(var(--accent-rgb), 0.12));
+  background: rgba(var(--accent-rgb), 0.12);
   color: var(--accent);
-  border-radius: var(--radius-sm);
+  border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
 }
@@ -477,29 +425,176 @@ a:hover {
 
 @media (max-width: 520px) {
   .page-shell {
-    padding: 20px 16px 32px;
+    padding: 16px 14px 28px;
+    max-width: 100%;
   }
 
   .home-shell {
-    padding: 20px 0;
+    padding: 16px 0;
+    max-width: 100%;
   }
 
+  /* 侧边栏更窄 */
   .sidebar {
-    width: 52px;
+    width: 48px;
   }
 
   .sidebar-btn {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .sidebar-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* 面板/卡片 */
+  .panel-header {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .panel-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
   }
 
   .panel-title h2 {
-    font-size: 17px;
+    font-size: 16px;
+  }
+
+  .panel-title p {
+    font-size: 12px;
+  }
+
+  .card {
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    padding: 12px 14px;
+    font-size: 13px;
   }
 
   .card-body {
     padding: 14px;
   }
+
+  /* Home 工具卡片单列 */
+  .tool-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .tool-card {
+    padding: 14px 12px;
+    gap: 12px;
+  }
+
+  .tool-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .tool-card-title {
+    font-size: 14px;
+  }
+
+  .tool-card-desc {
+    font-size: 11px;
+  }
+
+  /* Home 标题 */
+  .home-title {
+    font-size: 24px;
+  }
+
+  .home-subtitle {
+    font-size: 13px;
+  }
+
+  .home-brand {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* 按钮 */
+  .btn {
+    padding: 7px 14px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  /* 表单 */
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+
+  /* 拖放区 */
+  .file-display {
+    padding: 20px 14px;
+    border-radius: 10px;
+  }
+
+  /* Modal 在手机上全宽 */
+  .modal-box {
+    width: calc(100vw - 24px) !important;
+    max-height: 85vh;
+  }
+
+  .modal-body {
+    padding: 12px 14px;
+  }
+
+  /* Storage item */
+  .storage-item {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .storage-item-name {
+    font-size: 12px;
+  }
+
+  /* 步骤编号 */
+  .step-num {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  /* Markdown 视图 */
+  .md-view {
+    font-size: 12px;
+  }
+
+  .md-view .md-h-1 {
+    font-size: 16px;
+  }
+
+  .md-view .md-h-2 {
+    font-size: 14px;
+  }
 }
 
+/* ========= 平板适配 (521px - 899px) ========= */
+
+@media (min-width: 521px) and (max-width: 899px) {
+  .page-shell {
+    max-width: 560px;
+    padding: 24px 20px 40px;
+  }
+
+  .home-shell {
+    max-width: 560px;
+  }
+}
 

@@ -15,8 +15,12 @@ export default function StoragePanel() {
   const [files, setFiles] = useState<StoredFile[]>([]);
 
   const refresh = useCallback(async () => {
-    const all = await listFiles();
-    setFiles(all);
+    try {
+      const all = await listFiles();
+      setFiles(all);
+    } catch {
+      setFiles([]);
+    }
   }, []);
 
   useEffect(() => {
@@ -55,15 +59,15 @@ export default function StoragePanel() {
       </button>
 
       {open && (
-        <div className="modal-overlay" onClick={() => setOpen(false)}>
-          <div className="modal modal--wide" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" style={{ zIndex: 500 }} onClick={() => setOpen(false)}>
+          <div className="modal-box modal-box--wide" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>暂存区 {files.length > 0 && `(${files.length})`}</h2>
-              <button className="modal-close" onClick={() => setOpen(false)}>✕</button>
+              <h3>暂存区 {files.length > 0 && `(${files.length})`}</h3>
+              <button className="modal-close-btn" onClick={() => setOpen(false)}>✕</button>
             </div>
             <div className="modal-body">
               {files.length === 0 ? (
-                <p style={{ color: "var(--text-tertiary)", textAlign: "center", padding: 24 }}>
+                <p style={{ color: "var(--text-tertiary)", textAlign: "center", padding: 24, fontSize: 13 }}>
                   暂无存储的文件。处理完数据后，文件会自动暂存到这里。
                 </p>
               ) : (
