@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef } from "react";
-import { IconBrain, IconFileSpreadsheet, IconKey, IconBolt, IconDownload } from "@tabler/icons-react";
+import { IconBrain, IconFileSpreadsheet, IconKey, IconBolt, IconDownload, IconFlask } from "@tabler/icons-react";
 import { showToast } from "@/components/Toast";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import * as XLSX from "xlsx";
 import MarkdownView from "./markdown-view";
 import { markdownToPrintableHtml } from "@/lib/report-print";
+import { BIO_TEMPLATES, SAMPLE_DATA, SAMPLE_GENES, type BioTemplate } from "@/lib/bio-templates";
 import {
   getApiKeyStatus,
   setApiKey,
@@ -29,6 +30,16 @@ export default function InsightPage() {
   const [fileName, setFileName] = useState("");
   const [matrixMarkdown, setMatrixMarkdown] = useState("");
   const [genes, setGenes] = useState<string[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<BioTemplate>(BIO_TEMPLATES[0]);
+
+  // 加载示例数据（评委不用准备文件也能体验）
+  const handleLoadSample = useCallback(() => {
+    setMatrixMarkdown(SAMPLE_DATA);
+    setGenes(SAMPLE_GENES);
+    setFileName("示例数据（凋亡+EMT 7 基因）");
+    setResult(null);
+    showToast("已加载示例数据", "success");
+  }, []);
 
   const [userPrompt, setUserPrompt] = useState(DEFAULT_PROMPT);
   const [running, setRunning] = useState(false);
@@ -121,8 +132,9 @@ export default function InsightPage() {
     cancelledRef.current = false;
 
     try {
+      const effectivePrompt = selectedTemplate.prompt || userPrompt;
       const r = await runInsight(
-        { matrixMarkdown, genes, method: "ref-normalized", userPrompt },
+        { matrixMarkdown, genes, method: "ref-normalized", userPrompt: effectivePrompt },
         (e: InsightEvent) => {
           switch (e.kind) {
             case "taskId": setTaskId(e.taskId); break;
@@ -227,6 +239,12 @@ export default function InsightPage() {
             <div className="file-drop-icon">📄</div>
             <div className="file-drop-text">{fileName || "选择含 Summary_All_Genes 的 xlsx"}</div>
           </div>
+          <div className="btn-row" style={{ marginTop: 8 }}>
+            <button className="btn" style={{ fontSize: 12 }} onClick={handleLoadSample}>
+              <IconFlask size={14} stroke={2} style={{ verticalAlign: "-2px", marginRight: 4 }} />
+              加载示例数据
+            </button>
+          </div>
           {matrixMarkdown && (
             <div style={{ marginTop: 12 }}>
               <div className="meta">{genes.length} 个基因</div>
@@ -238,11 +256,33 @@ export default function InsightPage() {
 
       {/* 运行 */}
       <div className="card">
-        <div className="card-title"><span className="step-num">1</span><span>分析需求</span></div>
+        <div className="card-title"><span className="step-num">1</span><span>分析模板</span></div>
         <div className="card-body">
           <div className="form-group">
-            <textarea value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} rows={4} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--stroke)", background: "var(--bg-hover)", color: "var(--text-primary)", fontFamily: "var(--font)", fontSize: 14, resize: "vertical" }} />
+            <label>选择分析方向</label>
+            <select
+              value={selectedTemplate.id}
+              onChange={(e) => {
+                const t = BIO_TEMPLATES.find((t) => t.id === e.target.value);
+                if (t) setSelectedTemplate(t);
+              }}
+            >
+              {BIO_TEMPLATES.map((t) => (
+                <option key={t.id} value={t.id}>{t.label} — {t.description}</option>
+              ))}
+            </select>
           </div>
+          {selectedTemplate.id === "custom" && (
+            <div className="form-group">
+              <label>自定义分析需求</label>
+              <textarea value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} rows={4} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--stroke)", background: "var(--bg-hover)", color: "var(--text-primary)", fontFamily: "var(--font)", fontSize: 14, resize: "vertical" }} />
+            </div>
+          )}
+          {selectedTemplate.id !== "custom" && (
+            <p style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.5 }}>
+              {selectedTemplate.description}
+            </p>
+          )}
           <div className="btn-row">
             {!running ? (
               <button className="btn btn-primary btn-full" onClick={handleRun} disabled={!matrixMarkdown || !keyStatus.configured}>
