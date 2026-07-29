@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { IconX } from "@tabler/icons-react";
 
 interface ModalProps {
@@ -21,7 +22,7 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className={`modal-box${wide ? " modal-box--wide" : ""}`} onClick={(e) => e.stopPropagation()}>
         {title && (
@@ -36,6 +37,7 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

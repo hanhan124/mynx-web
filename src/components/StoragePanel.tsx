@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { IconDownload, IconTrash, IconDatabase } from "@tabler/icons-react";
 import { listFiles, deleteFile, downloadStoredFile, clearFiles, formatSize, formatDate, type StoredFile } from "@/lib/storage";
 import { showToast } from "@/components/Toast";
@@ -58,7 +59,7 @@ export default function StoragePanel() {
         <IconDatabase size={16} stroke={2} />
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="modal-overlay" onClick={() => setOpen(false)}>
           <div className="modal-box modal-box--wide" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -104,7 +105,8 @@ export default function StoragePanel() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
