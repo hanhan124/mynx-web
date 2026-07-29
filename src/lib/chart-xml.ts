@@ -358,20 +358,47 @@ function drawingContentTypeOverride(partName: string): string {
 }
 
 // ── Sheet Name → Sheet ID Lookup ───────────────────────────────────────────
-async function buildSheetNameMap(zip: JSZip): Promise<Map<string, number>> {
-  const map = new Map<string, number>();
+/**
+ * Build a map from sheet name → actual file path inside the xlsx zip.
+ *
+ * ExcelJS/Excel 的 sheetId 不一定等于文件名里的数字（sheet3.xml 不一定 sheetId=3）。
+ * 正确做法：从 workbook.xml 拿 name + r:id，再从 workbook.xml.rels 查 r:id → Target。
+ */
+async function buildSheetNameMap(zip: JSZip): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
   const wbXml = await zip.file('xl/workbook.xml')?.async('string');
   if (!wbXml) return map;
 
-  const sheetRe = /<sheet[^>]*?\bname\s*=\s*"([^"]*)"[^>]*?\bsheetId\s*=\s*"(\d+)"|<sheet[^>]*?\bsheetId\s*=\s*"(\d+)"[^>]*?\bname\s*=\s*"([^"]*)"/gi;
+  // Parse <sheet name="xxx" r:id="rIdN"/> pairs
+  const sheetRe = /<sheet\b[^>]*?\bname\s*=\s*"([^"]*)"[^>]*?\br:id\s*=\s*"([^"]*)"|<sheet\b[^>]*?\br:id\s*=\s*"([^"]*)"[^>]*?\bname\s*=\s*"([^"]*)"/gi;
+  const nameToRId = new Map<string, string>();
   let m: RegExpExecArray | null;
   while ((m = sheetRe.exec(wbXml)) !== null) {
     const name = m[1] || m[4];
-    const sheetId = parseInt(m[2] || m[3], 10);
-    if (name && !isNaN(sheetId)) {
-      map.set(name, sheetId);
+    const rId = m[2] || m[3];
+    if (name && rId) nameToRId.set(name, rId);
+  }
+
+  // Parse workbook.xml.rels: r:id → Target (actual file path)
+  const relsXml = await zip.file('xl/_rels/workbook.xml.rels')?.async('string');
+  if (!relsXml) return map;
+
+  const relRe = /<Relationship\b[^>]*?\bId\s*=\s*"([^"]*)"[^>]*?\bTarget\s*=\s*"([^"]*)"/gi;
+  const rIdToTarget = new Map<string, string>();
+  let mm: RegExpExecArray | null;
+  while ((mm = relRe.exec(relsXml)) !== null) {
+    rIdToTarget.set(mm[1], mm[2]);
+  }
+
+  for (const [name, rId] of nameToRId) {
+    const target = rIdToTarget.get(rId);
+    if (target) {
+      // Target is relative like "worksheets/sheet3.xml" → full path "xl/worksheets/sheet3.xml"
+      const fullPath = target.startsWith('xl/') ? target : `xl/${target}`;
+      map.set(name, fullPath);
     }
   }
+
   return map;
 }
 
@@ -403,11 +430,14 @@ export async function injectChartsIntoWorkbook(
   for (const sheet of sheets) {
     chartIndex++;
 
-    const sheetId = sheetNameMap.get(sheet.geneName);
-    if (!sheetId) continue;
+    const sheetPath = sheetNameMap.get(sheet.geneName);
+    if (!sheetPath) continue;
 
-    const sheetPath = `xl/worksheets/sheet${sheetId}.xml`;
-    const sheetRelsPath = `xl/worksheets/_rels/sheet${sheetId}.xml.rels`;
+    // Derive the rels path from the sheet path:
+    // xl/worksheets/sheet3.xml → xl/worksheets/_rels/sheet3.xml.rels
+    const sheetFile = sheetPath.split('/').pop() ?? '';
+    const sheetDir = sheetPath.includes('/') ? sheetPath.slice(0, sheetPath.lastIndexOf('/')) : 'xl/worksheets';
+    const sheetRelsPath = `${sheetDir}/_rels/${sheetFile}.rels`;
 
     // Chart table rows — use actual Group_Name header position
     // data starts at groupHeaderRow + 1, ends at groupHeaderRow + dataPoints.length

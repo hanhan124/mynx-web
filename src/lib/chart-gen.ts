@@ -12,8 +12,8 @@ export interface ChartGenResult {
   success: boolean;
   chartsCreated?: number;
   reason?: string;
-  /** The modified workbook (with charts injected into the underlying buffer). */
-  workbook?: ExcelJS.Workbook;
+  /** The xlsx buffer with charts injected (NOT an ExcelJS Workbook — ExcelJS would strip charts on reload). */
+  buffer?: Uint8Array;
 }
 
 /** Default chart fill color (matching the legacy hardcoded blue #3C9FDF). */
@@ -156,17 +156,14 @@ export async function generateCharts(
       controlGroup: methodOptions.controlGroup,
     });
 
-    // Step 4: Reload the modified buffer into a fresh workbook so the
-    // returned workbook reflects the charts (and so callers can save it).
-    const resultWorkbook = new ExcelJS.Workbook();
-    await resultWorkbook.xlsx.load(newBuffer as unknown as ExcelJS.Buffer);
-
     onProgress?.(sheets.length, sheets.length);
 
+    // IMPORTANT: Do NOT reload into ExcelJS — it would strip chart/drawing XML.
+    // Return the raw buffer containing the injected charts directly.
     return {
       success: true,
       chartsCreated: sheets.length,
-      workbook: resultWorkbook,
+      buffer: newBuffer,
     };
   } catch (error) {
     return {

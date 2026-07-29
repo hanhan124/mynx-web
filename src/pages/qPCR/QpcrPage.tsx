@@ -8,6 +8,7 @@ import HelpButton, { QpcrTutorial } from '@/components/HelpButton';
 import type { ExcelFile } from '@/lib/excel-io';
 import { saveExcelFile, downloadExcel } from '@/lib/excel-io';
 import { generateChartsFromBuffer } from '@/lib/chart-gen';
+import { saveFile } from '@/lib/storage';
 import { detectTransformedGenes } from '@/lib/qpcr-transform';
 import { showToast } from '@/components/Toast';
 
@@ -19,6 +20,8 @@ export default function QpcrPage() {
   const [loadingText, setLoadingText] = useState('');
   /** 0-100 determinate, or null for indeterminate. */
   const [progress, setProgress] = useState<number | null>(null);
+  /** 图表注入后的 xlsx buffer（含原生 Excel 图表）。下载时优先用这个。 */
+  const [chartBuffer, setChartBuffer] = useState<Uint8Array | null>(null);
 
   const startStage = useCallback(
     (text: string, mode: 'determinate' | 'indeterminate' = 'indeterminate') => {
@@ -94,12 +97,14 @@ export default function QpcrPage() {
           const tail = result.reason ? `，${result.reason}` : '';
           showToast(`已生成 ${created} 个图表${tail}`, 'success');
 
-          // If chart-gen returned an updated workbook, replace the in-memory
-          // file so a subsequent save/download includes the charts.
-          if (result.workbook) {
-            setFile((prev) =>
-              prev ? { ...prev, workbook: result.workbook! } : prev
-            );
+          // 图表注入后的 buffer 含原生 Excel 图表（不能重新加载到 ExcelJS，否则图表被丢弃）。
+          // 直接暂存到 IndexedDB，供用户下载。
+          if (result.buffer) {
+            setChartBuffer(result.buffer);
+            const blob = new Blob([result.buffer as unknown as ArrayBuffer], {
+              type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            });
+            await saveFile(file.name, 'excel', blob);
           }
         } else {
           showToast(`图表生成失败：${result.reason ?? '未知错误'}`, 'error');
@@ -205,8 +210,22 @@ export default function QpcrPage() {
               onClick={async () => {
                 if (!file) return;
                 try {
-                  await downloadExcel(file.workbook, file.name);
-                  showToast('已开始下载', 'success');
+                  if (chartBuffer) {
+                    // 下载含图表的版本
+                    const blob = new Blob([chartBuffer as unknown as ArrayBuffer], {
+                      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = file.name;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('已开始下载（含图表）', 'success');
+                  } else {
+                    await downloadExcel(file.workbook, file.name);
+                    showToast('已开始下载', 'success');
+                  }
                 } catch (e) {
                   showToast(`下载失败: ${e instanceof Error ? e.message : String(e)}`, 'error');
                 }
