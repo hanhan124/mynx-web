@@ -43,7 +43,8 @@ export default function InsightPage() {
 
   const [userPrompt, setUserPrompt] = useState(DEFAULT_PROMPT);
   const [running, setRunning] = useState(false);
-  const [statusMsg, setStatusMsg] = useState("");
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [progressText, setProgressText] = useState("");
   const [taskId, setTaskId] = useState("");
   const [result, setResult] = useState<InsightResult | null>(null);
   const cancelledRef = useRef(false);
@@ -127,7 +128,8 @@ export default function InsightPage() {
     }
     setRunning(true);
     setResult(null);
-    setStatusMsg("连接 Agent 中...");
+    setProgressPercent(1);
+    setProgressText("准备中...");
     setTaskId("");
     cancelledRef.current = false;
 
@@ -138,14 +140,24 @@ export default function InsightPage() {
         (e: InsightEvent) => {
           switch (e.kind) {
             case "taskId": setTaskId(e.taskId); break;
-            case "status": setStatusMsg(e.text); break;
-            case "error": setStatusMsg(e.text); break;
-            case "done": setStatusMsg("报告生成完成"); break;
+            case "progress":
+              setProgressPercent(e.percent);
+              setProgressText(e.text);
+              break;
+            case "error":
+              setProgressText(e.text);
+              break;
+            case "done":
+              setProgressPercent(100);
+              setProgressText("报告生成完成");
+              break;
           }
         },
         () => cancelledRef.current,
       );
       setResult(r);
+      setProgressPercent(100);
+      setProgressText("报告生成完成");
       // 暂存 Markdown 报告到 IndexedDB
       if (r.reportMarkdown) {
         const { saveFile } = await import("@/lib/storage");
@@ -153,6 +165,7 @@ export default function InsightPage() {
       }
       showToast("报告生成完成，已暂存", "success");
     } catch (e) {
+      setProgressText(`失败: ${e instanceof Error ? e.message : String(e)}`);
       showToast(`解读失败: ${e instanceof Error ? e.message : String(e)}`, "error");
     } finally {
       setRunning(false);
@@ -176,7 +189,6 @@ export default function InsightPage() {
 
   return (
     <div className="page-shell">
-      <LoadingOverlay visible={running} text={statusMsg} />
       <div className="panel-header">
         <div className="panel-icon" style={{ background: "#af52de" }}>
           <IconBrain size={18} color="white" stroke={1.75} />
@@ -297,13 +309,36 @@ export default function InsightPage() {
         </div>
       </div>
 
-      {/* 状态 */}
-      {(running || result || statusMsg) && (
+      {/* 进度 */}
+      {(running || progressPercent > 0) && (
         <div className="card">
           <div className="card-title"><span className="step-num">2</span><span>{running ? "执行中" : "完成"}</span></div>
           <div className="card-body">
             {taskId && <div className="meta">taskId: {taskId}</div>}
-            <div style={{ padding: 10, background: "var(--bg-hover)", borderRadius: 6, fontSize: 14 }}>{statusMsg || "等待..."}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              {running && <div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />}
+              <span style={{ fontSize: 14, fontWeight: 500 }}>{progressText || "等待..."}</span>
+            </div>
+            {/* 进度条 */}
+            <div style={{
+              width: "100%",
+              height: 6,
+              background: "var(--bg-hover)",
+              borderRadius: 3,
+              overflow: "hidden",
+            }}>
+              <div style={{
+                width: `${progressPercent}%`,
+                height: "100%",
+                background: "var(--accent)",
+                borderRadius: 3,
+                transition: "width 0.4s ease",
+              }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 11, color: "var(--text-tertiary)" }}>
+              <span>{progressPercent}%</span>
+              <span>{running ? "请稍候..." : "完成"}</span>
+            </div>
           </div>
         </div>
       )}

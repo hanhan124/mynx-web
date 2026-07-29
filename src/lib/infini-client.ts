@@ -34,7 +34,7 @@ export interface ApiKeyStatus { configured: boolean; server: string; }
 export interface ConnectionTest { ok: boolean; code: number; detail: string; server: string; }
 export interface InsightPayload { matrixMarkdown: string; genes: string[]; method: string; controlGroup?: string; userPrompt: string; }
 export interface InsightResult { taskId: string; reportMarkdown: string | null; pdfFile: string | null; mdFile: string | null; files: string[]; }
-export type InsightEvent = { kind: "taskId"; taskId: string } | { kind: "status"; text: string } | { kind: "error"; text: string } | { kind: "done" } | { kind: "cancelled" };
+export type InsightEvent = { kind: "taskId"; taskId: string } | { kind: "progress"; percent: number; text: string } | { kind: "error"; text: string } | { kind: "done" } | { kind: "cancelled" };
 
 export function getApiKeyStatus(): ApiKeyStatus {
   const cfg = loadConfig();
@@ -87,11 +87,11 @@ export async function runInsight(payload: InsightPayload, onEvent: (e: InsightEv
   _setCancelHandle(handle);
   const stopRequested = () => handle.cancelled || isCancelled();
 
-  onEvent({ kind: "status", text: "连接 Agent 中..." });
+  onEvent({ kind: "progress", percent: 2, text: "连接 Agent 中..." });
   const sseResp = await fetch(`${base}/api/ai/events?connId=${connId}`, { headers: { Authorization: `Bearer ${apiKey}`, Accept: "text/event-stream", "x-lang": "zh_CN" } });
   if (!sseResp.ok) throw new Error(`SSE 连接失败 (${sseResp.status})`);
 
-  onEvent({ kind: "status", text: "发送分析任务..." });
+  onEvent({ kind: "progress", percent: 5, text: "发送分析任务..." });
   const taskResp = await fetch(`${base}/api/ai/message`, {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "x-lang": "zh_CN" },
@@ -100,10 +100,19 @@ export async function runInsight(payload: InsightPayload, onEvent: (e: InsightEv
   if (!taskResp.ok) throw new Error(`发送任务失败 (${taskResp.status})`);
   await taskResp.json().catch(() => null);
 
-  onEvent({ kind: "status", text: "Agent 正在生成报告..." });
+  // SSE 消费：提取操作进度信号（非 reasoning 流）
+  // 进度估算：taskId=5%, 每轮 API 请求 +5-15%, completion_result=95%, 读报告=100%
   const reader = sseResp.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = "", taskId = "", done = false, errorMsg = "";
+  let apiReqCount = 0;       // LLM 调用次数
+  let progressPercent = 5;   // 当前进度
+
+  const pushProgress = (text: string, bump: number = 0) => {
+    if (bump > 0) progressPercent = Math.min(progressPercent + bump, 90);
+    onEvent({ kind: "progress", percent: progressPercent, text });
+    _emitEvent({ kind: "progress", percent: progressPercent, text });
+  };
 
   while (true) {
     if (stopRequested()) {
@@ -127,19 +136,58 @@ export async function runInsight(payload: InsightPayload, onEvent: (e: InsightEv
       if (!data || data === "ping") continue;
       let parsed: Record<string, unknown>;
       try { parsed = JSON.parse(data) as Record<string, unknown>; } catch { continue; }
+
       const tid = parsed.taskId;
       if (!taskId && typeof tid === "string") {
         taskId = tid;
         handle.taskId = tid;
-        _emitEvent({ kind: "taskId", taskId: tid });
+        progressPercent = 8;
         onEvent({ kind: "taskId", taskId });
+        _emitEvent({ kind: "taskId", taskId });
+        pushProgress("Agent 已启动，正在分析数据...", 0);
       }
+
       if (eventType === "message.add" || eventType === "message.partial" || eventType === "message.update") {
         const msg = parsed.message as Record<string, unknown> | undefined;
         if (!msg) continue;
-        if (((msg.type as string) ?? "") === "ask" && ((msg.ask as string) ?? "") === "completion_result") { done = true; break; }
+        const msgType = (msg.type as string) ?? "";
+        const ask = (msg.ask as string) ?? "";
+        const say = (msg.say as string) ?? "";
+        const text = (msg.text as string) ?? "";
+
+        // 完成信号
+        if (msgType === "ask" && ask === "completion_result") {
+          done = true;
+          progressPercent = 92;
+          pushProgress("分析完成，正在读取报告...", 0);
+          break;
+        }
+
+        // LLM API 请求开始 → "正在分析..."
+        if (say === "api_req_started") {
+          apiReqCount++;
+          const steps = ["正在分析数据", "正在生成解读", "正在整理报告", "正在优化内容"];
+          const stepName = apiReqCount <= steps.length ? steps[apiReqCount - 1] : "继续生成中";
+          pushProgress(`${stepName}... (第 ${apiReqCount} 轮)`, 12);
+        }
+
+        // LLM API 请求完成
+        if (say === "api_req_finished") {
+          pushProgress("本轮分析完成", 3);
+        }
+
+        // Agent 的文本状态消息（非 reasoning）——显示简短的操作描述
+        if (say === "text" && eventType === "message.add" && text.length > 0 && text.length < 200) {
+          // 提取文件操作信息（如写入 report.md）
+          if (text.includes("write_to_file") || text.includes("report.md") || text.includes("文件")) {
+            pushProgress("正在写入报告文件...", 5);
+          }
+        }
       } else if (eventType === "notification") {
-        if (parsed.type === "error") { errorMsg = (parsed.message as string) ?? "任务失败"; break; }
+        if (parsed.type === "error") {
+          errorMsg = (parsed.message as string) ?? "任务失败";
+          break;
+        }
       }
     }
     if (done || errorMsg) break;
@@ -154,7 +202,8 @@ export async function runInsight(payload: InsightPayload, onEvent: (e: InsightEv
   }
   if (!taskId) throw new Error("未收到 taskId");
 
-  onEvent({ kind: "status", text: "读取报告..." });
+  onEvent({ kind: "progress", percent: 95, text: "读取报告..." });
+  _emitEvent({ kind: "progress", percent: 95, text: "读取报告..." });
   const wsResp = await fetch(`${base}/api/ai_task/getTaskWorkspace/${taskId}`, { headers: { Authorization: `Bearer ${apiKey}` } });
   const wsBody = (await wsResp.json().catch(() => null)) as Record<string, unknown> | null;
   const wsData = (wsBody?.data ?? {}) as Record<string, unknown>;
