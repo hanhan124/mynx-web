@@ -20,19 +20,28 @@ export function getSheetNames(wb: ExcelJS.Workbook): string[] {
   return wb.worksheets.map((s) => s.name);
 }
 
-/** 把 workbook 写成 xlsx，触发浏览器下载，同时暂存到 IndexedDB。 */
-export async function saveExcelFile(wb: ExcelJS.Workbook, fileName: string): Promise<void> {
+/** 把 workbook 写成 xlsx Blob（内部用）。 */
+async function workbookToBlob(wb: ExcelJS.Workbook): Promise<Blob> {
   const buf = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buf], {
+  return new Blob([buf], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
-  // 下载
+}
+
+/** 暂存 workbook 到 IndexedDB（不触发下载）。供自动保存用。 */
+export async function saveExcelFile(wb: ExcelJS.Workbook, fileName: string): Promise<void> {
+  const blob = await workbookToBlob(wb);
+  await saveFile(fileName, "excel", blob);
+}
+
+/** 主动下载 workbook 为 xlsx（同时暂存）。供用户点「下载」按钮用。 */
+export async function downloadExcel(wb: ExcelJS.Workbook, fileName: string): Promise<void> {
+  const blob = await workbookToBlob(wb);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = fileName;
   a.click();
   URL.revokeObjectURL(url);
-  // 暂存
   await saveFile(fileName, "excel", blob);
 }

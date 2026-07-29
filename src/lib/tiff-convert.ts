@@ -308,7 +308,13 @@ export async function convertTiff(
   return results;
 }
 
-/** 触发浏览器下载单个 Blob（页面用），同时暂存到 IndexedDB。 */
+/** 暂存 Blob 到 IndexedDB（不触发下载）。供自动保存用。 */
+export async function storeBlob(blob: Blob, name: string): Promise<void> {
+  const { saveFile } = await import("@/lib/storage");
+  await saveFile(name, "jpg", blob);
+}
+
+/** 主动下载 Blob（同时暂存）。供用户点「下载」按钮用。 */
 export async function downloadBlob(blob: Blob, name: string): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -318,7 +324,5 @@ export async function downloadBlob(blob: Blob, name: string): Promise<void> {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  // 暂存
-  const { saveFile } = await import("@/lib/storage");
-  await saveFile(name, "jpg", blob);
+  await storeBlob(blob, name);
 }

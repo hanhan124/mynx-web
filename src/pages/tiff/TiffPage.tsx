@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IconPhotoFilled, IconAdjustmentsFilled, IconFileZip } from "@tabler/icons-react";
-import { convertTiffFiles, downloadBlob, type TiffOptions, type TiffConvertResult } from "@/lib/tiff-convert";
+import { convertTiffFiles, storeBlob, downloadBlob, type TiffOptions, type TiffConvertResult } from "@/lib/tiff-convert";
 import ConvertOptions from "./ConvertOptions";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import HelpButton, { TiffTutorial } from "@/components/HelpButton";
@@ -47,6 +47,10 @@ export default function TiffPage() {
       });
       setProgress(100);
       setResults(all);
+      // 自动暂存到 IndexedDB，不触发下载
+      for (const r of all) {
+        await storeBlob(r.blob, r.name);
+      }
       if (result.ok === 0 && result.failed === 0) {
         showToast("未找到 TIFF 文件", "info");
       } else if (result.failed > 0) {
@@ -63,7 +67,7 @@ export default function TiffPage() {
   };
 
   const handleDownloadAll = () => {
-    results.forEach((r) => downloadBlob(r.blob, r.name));
+    results.forEach((r) => void downloadBlob(r.blob, r.name));
     showToast("开始下载全部", "info");
   };
 

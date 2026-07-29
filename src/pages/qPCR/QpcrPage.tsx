@@ -6,7 +6,7 @@ import Calculate from './Calculate';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import HelpButton, { QpcrTutorial } from '@/components/HelpButton';
 import type { ExcelFile } from '@/lib/excel-io';
-import { saveExcelFile } from '@/lib/excel-io';
+import { saveExcelFile, downloadExcel } from '@/lib/excel-io';
 import { generateChartsFromBuffer } from '@/lib/chart-gen';
 import { detectTransformedGenes } from '@/lib/qpcr-transform';
 import { showToast } from '@/components/Toast';
@@ -189,6 +189,34 @@ export default function QpcrPage() {
         </div>
       </div>
 
+      {/* 下载 */}
+      {file && (
+        <div className="card">
+          <div className="card-title">
+            <IconFileSpreadsheet size={14} stroke={1.75} />
+            <span>下载结果</span>
+          </div>
+          <div className="card-body">
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 8 }}>
+              数据已自动暂存。点下方按钮下载到本地。
+            </p>
+            <button
+              className="btn btn-primary btn-full"
+              onClick={async () => {
+                if (!file) return;
+                try {
+                  await downloadExcel(file.workbook, file.name);
+                  showToast('已开始下载', 'success');
+                } catch (e) {
+                  showToast(`下载失败: ${e instanceof Error ? e.message : String(e)}`, 'error');
+                }
+              }}
+            >
+              下载 Excel
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
