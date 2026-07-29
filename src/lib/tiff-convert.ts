@@ -308,8 +308,8 @@ export async function convertTiff(
   return results;
 }
 
-/** 触发浏览器下载单个 Blob（页面用）。 */
-export function downloadBlob(blob: Blob, name: string): void {
+/** 触发浏览器下载单个 Blob（页面用），同时暂存到 IndexedDB。 */
+export async function downloadBlob(blob: Blob, name: string): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -318,4 +318,7 @@ export function downloadBlob(blob: Blob, name: string): void {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // 暂存
+  const { saveFile } = await import("@/lib/storage");
+  await saveFile(name, "jpg", blob);
 }

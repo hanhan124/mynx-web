@@ -134,7 +134,12 @@ export default function InsightPage() {
         () => cancelledRef.current,
       );
       setResult(r);
-      showToast("报告生成完成", "success");
+      // 暂存 Markdown 报告到 IndexedDB
+      if (r.reportMarkdown) {
+        const { saveFile } = await import("@/lib/storage");
+        await saveFile(`report-${r.taskId}.md`, "markdown", new Blob([r.reportMarkdown], { type: "text/markdown" }));
+      }
+      showToast("报告生成完成，已暂存", "success");
     } catch (e) {
       showToast(`解读失败: ${e instanceof Error ? e.message : String(e)}`, "error");
     } finally {

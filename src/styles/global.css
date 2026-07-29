@@ -95,3 +95,142 @@ input {
 ::selection {
   background: rgba(var(--accent-rgb, 0, 122, 255), 0.22);
 }
+
+/* ========= 网页版专用：Modal + StoragePanel ========= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--shadow-dialog, 0 8px 32px rgba(0,0,0,0.2));
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--separator);
+}
+
+.modal--wide {
+  max-width: 560px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--separator);
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.modal-close:hover {
+  background: var(--bg-hover);
+}
+
+.modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Storage list */
+.storage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.storage-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--separator);
+}
+
+.storage-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.storage-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.storage-item-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.storage-tag {
+  padding: 1px 6px;
+  background: var(--accent-soft, rgba(var(--accent-rgb), 0.12));
+  color: var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.storage-item-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.storage-item-actions .btn {
+  padding: 4px 8px;
+  height: 28px;
+}
+
+/* ========= 网页版布局说明 =========
+ * 网页版 App.tsx 复用桌面端 layout.css 的 .app-layout / .app-body / .app-main
+ * 结构（仅省略 TitleBar 与 UpdateNotification）。页面滚动由 .app-main 的
+ * overflow-y: auto 负责，配合 body { overflow: hidden } 实现与桌面端一致的
+ * “窗口固定、内容区滚动”效果，无需额外布局覆盖。
+ *
+ * .page-loading：React.lazy 加载时的占位样式。
+ */
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 200px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+

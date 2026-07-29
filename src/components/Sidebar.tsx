@@ -4,6 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import Modal from "@/components/Modal";
 import ThemePicker from "@/components/ThemePicker";
 import AboutModal from "@/components/AboutModal";
+import StoragePanel from "@/components/StoragePanel";
 import { IconHomeFilled, IconWorldFilled, IconPaletteFilled, IconInfoCircleFilled } from "@tabler/icons-react";
 import { tools } from "@/lib/tools";
 
@@ -42,6 +43,7 @@ export default function Sidebar() {
         </div>
 
         <div className="sidebar-footer">
+          <StoragePanel />
           <button
             className="sidebar-btn"
             title="网站"

@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import { saveFile } from "@/lib/storage";
 
 export interface ExcelFile {
   name: string;
@@ -19,16 +20,19 @@ export function getSheetNames(wb: ExcelJS.Workbook): string[] {
   return wb.worksheets.map((s) => s.name);
 }
 
-/** 把 workbook 写成 xlsx 并触发浏览器下载。 */
+/** 把 workbook 写成 xlsx，触发浏览器下载，同时暂存到 IndexedDB。 */
 export async function saveExcelFile(wb: ExcelJS.Workbook, fileName: string): Promise<void> {
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
+  // 下载
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = fileName;
   a.click();
   URL.revokeObjectURL(url);
+  // 暂存
+  await saveFile(fileName, "excel", blob);
 }
