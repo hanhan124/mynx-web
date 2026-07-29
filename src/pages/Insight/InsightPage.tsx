@@ -78,19 +78,51 @@ export default function InsightPage() {
       const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as unknown[][];
       if (data.length < 2) throw new Error("数据为空");
 
-      // 构建 Markdown 表
-      const lines = data.map((row) => `| ${row.map((c) => String(c ?? "")).join(" | ")} |`);
-      const sep = `| ${data[0].map(() => "---").join(" | ")} |`;
-      lines.splice(1, 0, sep);
-      setMatrixMarkdown(lines.join("\n"));
-
-      // 提取基因名（Gene 列）
+      // 只提取关键列：Gene | Group_Name | Average | Stdev
+      // 不传 Repeat1..N / Method 等冗余列，大幅省 token
       const header = data[0] as string[];
-      const geneCol = header.findIndex((h) => String(h).trim() === "Gene");
-      if (geneCol >= 0) {
+      const colGene = header.findIndex((h) => String(h).trim() === "Gene");
+      const colGroup = header.findIndex((h) => String(h).trim() === "Group_Name");
+      const colAvg = header.findIndex((h) => String(h).trim() === "Average");
+      const colStdev = header.findIndex((h) => String(h).trim() === "Stdev");
+
+      if (colGene < 0 || colAvg < 0) {
+        // 没有 Summary 表结构，回退到全量传
+        const lines = data.map((row) => `| ${row.map((c) => String(c ?? "").slice(0, 20)).join(" | ")} |`);
+        const sep = `| ${data[0].map(() => "---").join(" | ")} |`;
+        lines.splice(1, 0, sep);
+        setMatrixMarkdown(lines.join("\n"));
+      } else {
+        // 构建精简矩阵
+        const cols = ["Gene", "Group_Name", "Average", "Stdev"].map((h) => {
+          if (h === "Gene") return colGene;
+          if (h === "Group_Name") return colGroup >= 0 ? colGroup : -1;
+          if (h === "Average") return colAvg;
+          if (h === "Stdev") return colStdev >= 0 ? colStdev : -1;
+          return -1;
+        });
+        const validCols = cols.filter((c) => c >= 0);
+        const colNames = ["Gene", "Group_Name", "Average", "Stdev"].filter((_, i) => cols[i] >= 0);
+
+        const mdLines = [`| ${colNames.join(" | ")} |`];
+        mdLines.push(`| ${colNames.map(() => "---").join(" | ")} |`);
+        for (let r = 1; r < data.length; r++) {
+          const row = validCols.map((c) => {
+            const v = data[r][c];
+            if (v == null) return "";
+            const n = typeof v === "number" ? Math.round(v * 10000) / 10000 : String(v);
+            return String(n);
+          });
+          if (row.some((c) => c !== "")) mdLines.push(`| ${row.join(" | ")} |`);
+        }
+        setMatrixMarkdown(mdLines.join("\n"));
+      }
+
+      // 提取基因名
+      if (colGene >= 0) {
         const geneSet = new Set<string>();
         for (let r = 1; r < data.length; r++) {
-          const g = String(data[r][geneCol] ?? "").trim();
+          const g = String(data[r][colGene] ?? "").trim();
           if (g) geneSet.add(g);
         }
         setGenes([...geneSet]);
