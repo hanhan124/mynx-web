@@ -72,7 +72,54 @@ export async function testConnection(): Promise<ConnectionTest> {
 
 function buildPrompt(payload: InsightPayload): string {
   const methodLabel = payload.method === "control-relative" ? `Control-relative (ΔΔCt), 对照组: ${payload.controlGroup ?? "(未指定)"}` : payload.method;
-  return `## 执行要求\n\n用户需要尽快得到报告。请立即分析并直接执行，不要在对话中输出长篇推理、思考过程或报告正文。\n使用 write_to_file 工具把完整报告写入工作区的 \`report.md\`，写完后立即用 attempt_completion 结束。\n不要尝试生成 PDF、探测字体或执行额外的 PDF 转换。\n\n## 报告结构\n\n1. **数据概览**\n2. **差异基因分析**\n3. **生物学解读**\n4. **后续实验建议**\n\n## qPCR 基因表达数据\n\n- 计算方法: ${methodLabel}\n- 目标基因: ${payload.genes.join(", ")}\n\n### 数据矩阵\n\n${payload.matrixMarkdown}\n\n## 用户额外需求\n\n${payload.userPrompt}`;
+  return `# 角色设定
+
+你是一位资深的分子生物学与生物信息学专家，精通 qPCR 数据分析、基因表达调控、信号通路和疾病机制。请以专家视角对以下 qPCR 数据进行专业解读。
+
+# 执行要求
+
+用户需要尽快得到报告。请立即分析并直接执行，不要在对话中输出长篇推理、思考过程或报告正文。
+使用 write_to_file 工具把完整报告写入工作区的 report.md，写完后立即用 attempt_completion 结束。
+不要尝试生成 PDF、探测字体或执行额外的 PDF 转换。
+
+# 报告结构（写入 report.md）
+
+## 1. 数据质量评估
+- 检查各基因 Ct/表达值是否在合理范围
+- 评估内参基因的稳定性
+- 标记可能的异常数据点
+
+## 2. 差异表达分析
+- 报告每个基因在各组间的 fold change
+- 标注显著上调（FC > 2）和显著下调（FC < 0.5）的基因
+- 结合 Stdev 评估差异可靠性
+
+## 3. 生物学意义解读
+- 对每个差异基因，说明其已知的生物学功能
+- 推测可能激活/抑制的信号通路（如 PI3K/AKT、MAPK、Wnt、p53、NF-κB、TGF-β、凋亡通路、EMT 等）
+- 分析多个基因同时变化时可能指向的通路或表型
+- 注明哪些推断有文献支持，哪些是合理推测
+
+## 4. 文献对比
+- 引用该领域经典发现作为参照
+- 如结果与文献一致，说明意义；如不一致，分析可能原因
+
+## 5. 后续实验建议
+- 建议补充验证实验（Western Blot、ELISA、流式细胞术等）
+- 建议检测相关通路的其他标志物
+
+# qPCR 基因表达数据
+
+- 计算方法: ${methodLabel}
+- 目标基因: ${payload.genes.join(", ")}
+
+## 数据矩阵
+
+${payload.matrixMarkdown}
+
+# 用户额外需求
+
+${payload.userPrompt}`;
 }
 
 export async function runInsight(payload: InsightPayload, onEvent: (e: InsightEvent) => void, isCancelled: () => boolean): Promise<InsightResult> {
