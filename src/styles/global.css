@@ -96,6 +96,16 @@ input {
   background: rgba(var(--accent-rgb, 0, 122, 255), 0.22);
 }
 
+/* ========= 视口高度修复 =========
+ * 100vh 在手机上不准（地址栏伸缩导致内容被遮挡）。
+ * 用 100dvh（动态视口高度）替代，回退到 100vh。
+ */
+@supports (height: 100dvh) {
+  .app-layout {
+    height: 100dvh;
+  }
+}
+
 /* ============================================================
    网页版专用布局优化 — 适配宽屏，保持桌面端紧凑感
    桌面端窗口 440px，网页版在宽屏下需要最大宽度居中 + 间距优化。
@@ -421,11 +431,89 @@ a:hover {
   flex-wrap: wrap;
 }
 
-/* ========= 响应式：移动端适配 ========= */
+/* ========= 响应式：移动端适配（≤520px） =========
+ * 手机端核心改动：
+ * 1. 侧边栏从竖排改为底部横排导航栏（不占内容宽度）
+ * 2. app-body 改为列向 flex（导航在底部）
+ * 3. 内容区占满宽度，padding 含安全区域
+ */
 
 @media (max-width: 520px) {
+  /* 视口高度用 dvh */
+  .app-layout {
+    height: 100dvh;
+  }
+
+  /* app-body 改为列向：内容在上，导航在下 */
+  .app-body {
+    flex-direction: column;
+  }
+
+  /* 侧边栏改为底部导航栏 */
+  .sidebar {
+    flex-direction: row;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    padding: 6px 8px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    border-right: none;
+    border-top: 0.5px solid var(--separator);
+    backdrop-filter: blur(40px) saturate(160%);
+    -webkit-backdrop-filter: blur(40px) saturate(160%);
+    z-index: 100;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    justify-content: space-around;
+    flex: 1;
+    padding: 0;
+  }
+
+  .sidebar-footer {
+    flex-direction: row;
+    border-top: none;
+    padding: 0;
+    gap: 2px;
+  }
+
+  /* 导航按钮：横排，带标签 */
+  .sidebar-btn {
+    width: auto;
+    height: 44px;
+    flex: 1;
+    max-width: 64px;
+    border-radius: 12px;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sidebar-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* 活跃指示器从竖条改为顶部圆点 */
+  .sidebar-btn--active::after {
+    width: 24px;
+    height: 3px;
+    border-radius: 3px;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
+  /* 内容区占满宽度，加安全区域 padding */
+  .app-main {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .page-shell {
-    padding: 16px 14px 28px;
+    padding: 16px 14px 24px;
     max-width: 100%;
   }
 
@@ -434,36 +522,20 @@ a:hover {
     max-width: 100%;
   }
 
-  /* 侧边栏更窄 */
-  .sidebar {
-    width: 48px;
-  }
-
-  .sidebar-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-  }
-
-  .sidebar-btn svg {
-    width: 18px;
-    height: 18px;
-  }
-
   /* 面板/卡片 */
   .panel-header {
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 16px;
   }
 
   .panel-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
   }
 
   .panel-title h2 {
-    font-size: 16px;
+    font-size: 17px;
   }
 
   .panel-title p {
@@ -471,13 +543,13 @@ a:hover {
   }
 
   .card {
-    border-radius: 12px;
+    border-radius: 14px;
     margin-bottom: 12px;
   }
 
   .card-title {
     padding: 12px 14px;
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .card-body {
@@ -491,27 +563,28 @@ a:hover {
   }
 
   .tool-card {
-    padding: 14px 12px;
-    gap: 12px;
+    padding: 16px 14px;
+    gap: 14px;
+    border-radius: 14px;
   }
 
   .tool-card-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
   }
 
   .tool-card-title {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .tool-card-desc {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   /* Home 标题 */
   .home-title {
-    font-size: 24px;
+    font-size: 26px;
   }
 
   .home-subtitle {
@@ -523,67 +596,99 @@ a:hover {
     margin-bottom: 20px;
   }
 
-  /* 按钮 */
+  /* 按钮：更大触控目标 */
   .btn {
-    padding: 7px 14px;
-    font-size: 13px;
-    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 10px;
+    min-height: 40px;
   }
 
-  /* 表单 */
+  /* 表单：更大触控目标 */
   .form-group input,
   .form-group select,
   .form-group textarea {
-    font-size: 13px;
-    padding: 7px 10px;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    min-height: 40px;
   }
 
   /* 拖放区 */
   .file-display {
-    padding: 20px 14px;
-    border-radius: 10px;
+    padding: 24px 16px;
+    border-radius: 12px;
   }
 
-  /* Modal 在手机上全宽 */
+  /* Modal 在手机上全宽，垂直居中偏下 */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
   .modal-box {
-    width: calc(100vw - 24px) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0;
     max-height: 85vh;
+    margin: 0;
   }
 
   .modal-body {
-    padding: 12px 14px;
+    padding: 14px 16px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Storage item */
   .storage-item {
-    padding: 8px 10px;
-    gap: 8px;
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 10px;
   }
 
   .storage-item-name {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   /* 步骤编号 */
   .step-num {
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
   }
 
   /* Markdown 视图 */
   .md-view {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .md-view .md-h-1 {
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .md-view .md-h-2 {
+    font-size: 15px;
+  }
+
+  .md-view .md-h-3 {
     font-size: 14px;
   }
+
+  /* 表格在手机上可横向滚动 */
+  .md-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 文件预览区 */
+  .insight-matrix-pre,
+  .insight-progress-pre {
+    font-size: 11px;
+    padding: 10px;
+    max-height: 200px;
+  }
 }
+
 
 /* ========= 平板适配 (521px - 899px) ========= */
 
