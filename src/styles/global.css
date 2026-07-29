@@ -702,6 +702,22 @@ a:hover {
   }
 }
 
+/* ========= Toast 避开悬浮统计按钮 =========
+ * 桌面端 toast 在右下角 18px，和 stats-fab (20px) 重叠。
+ * 往上移到 80px 避开。
+ */
+.toast-container {
+  bottom: 80px !important;
+  right: 20px !important;
+}
+
+@media (max-width: 520px) {
+  .toast-container {
+    bottom: 76px !important;
+    right: 16px !important;
+  }
+}
+
 /* ========= 悬浮统计工具 ========= */
 
 .stats-fab {
