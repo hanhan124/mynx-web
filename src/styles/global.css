@@ -96,6 +96,134 @@ input {
   background: rgba(var(--accent-rgb, 0, 122, 255), 0.22);
 }
 
+/* ============================================================
+   网页版专用布局优化 — 适配宽屏，保持桌面端紧凑感
+   桌面端窗口 440px，网页版在宽屏下需要最大宽度居中 + 间距优化。
+   覆盖 layout.css 中桌面端的设计值，不修改桌面端 CSS 本身。
+   ============================================================ */
+
+/* 内容区居中，最大宽度 680px，不拉满宽屏 */
+.page-shell {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 28px 48px;
+  gap: 0;
+}
+
+/* 宽屏下加大 padding */
+@media (min-width: 900px) {
+  .page-shell {
+    padding: 40px 36px 56px;
+  }
+}
+
+/* 超宽屏时进一步限制，保持阅读舒适 */
+@media (min-width: 1200px) {
+  .page-shell {
+    max-width: 720px;
+    padding: 48px 40px 64px;
+  }
+}
+
+/* Home 页面：卡片网格在宽屏下保持 2 列，不拉成 1 列或 4 列 */
+.home-shell {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+.home-cards {
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .home-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 卡片在网页版加更柔和的圆角和阴影（苹果风格） */
+.card {
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 0.5px var(--separator);
+  border: none;
+}
+
+/* 按钮在网页版更圆润 */
+.btn {
+  border-radius: 9px;
+  font-weight: 500;
+}
+
+/* 输入框/表单更圆润 */
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border-radius: 9px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* 面板图标在网页版稍大一些 */
+.panel-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+}
+
+.panel-title h2 {
+  font-size: 19px;
+}
+
+/* 拖放区在网页版更大气 */
+.file-display {
+  border-radius: 12px;
+  padding: 28px 20px;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.file-display:hover {
+  transform: translateY(-1px);
+}
+
+/* 侧边栏在网页版稍宽（桌面端 52px 太窄） */
+.sidebar {
+  width: 60px;
+}
+
+.sidebar-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+}
+
+.sidebar-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* 步骤编号在网页版稍大 */
+.step-num {
+  width: 22px;
+  height: 22px;
+  font-size: 13px;
+}
+
+/* 文字内容区域允许选中（桌面端全局禁用，网页版需要） */
+body {
+  user-select: text;
+}
+
+/* 链接样式 */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
 /* ========= 网页版专用：Modal + StoragePanel ========= */
 
 .modal-overlay {
@@ -233,4 +361,145 @@ input {
   color: var(--text-secondary);
   font-size: 14px;
 }
+
+/* ========= Home 页面网页版优化 ========= */
+
+.home-brand {
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.home-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.home-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* 工具卡片：宽屏下 2 列，紧凑排列 */
+.tool-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+@media (min-width: 520px) {
+  .tool-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 0.5px var(--separator);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-align: left;
+  width: 100%;
+}
+
+.tool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 0.5px var(--separator);
+}
+
+.tool-card-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-card-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tool-card-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.tool-card-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.home-footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--separator);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.home-footer-line {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* ========= InsightPage 进度区/报告区网页版优化 ========= */
+
+.insight-status {
+  border-radius: 12px;
+}
+
+.insight-download-row {
+  flex-wrap: wrap;
+}
+
+/* ========= 响应式：移动端适配 ========= */
+
+@media (max-width: 520px) {
+  .page-shell {
+    padding: 20px 16px 32px;
+  }
+
+  .home-shell {
+    padding: 20px 0;
+  }
+
+  .sidebar {
+    width: 52px;
+  }
+
+  .sidebar-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .panel-title h2 {
+    font-size: 17px;
+  }
+
+  .card-body {
+    padding: 14px;
+  }
+}
+
 

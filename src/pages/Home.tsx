@@ -42,7 +42,7 @@ export default function Home() {
       </div>
 
       <div className="home-footer">
-        <span className="home-footer-line">Mynx · Tauri + React + Rust</span>
+        <span className="home-footer-line">Mynx Web · React + Vite</span>
         <span className="home-footer-line">© 2026 Han · MIT License</span>
       </div>
     </div>
