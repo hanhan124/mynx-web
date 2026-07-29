@@ -234,14 +234,49 @@ a:hover {
   text-decoration: underline;
 }
 
-/* ========= 网页版专用：StoragePanel 样式 =========
- * Modal 复用桌面端 components.css 的 .modal-overlay / .modal-box / .modal-header / .modal-close-btn
- * 不再自己定义 .modal 类（会和桌面端冲突）
+/* ========= 网页版专用：StoragePanel / Modal 修复 =========
+ * 桌面端 .modal-box 宽度只有 340px、没有 max-height，
+ * 暂存区内容多时会超出视口。这里覆盖关键属性。
  */
 
-/* 确保 modal-overlay 在 sidebar 之上 */
+/* 确保 modal 在所有元素之上 */
 .modal-overlay {
-  z-index: 500 !important;
+  z-index: 9999 !important;
+}
+
+/* modal-box 加 max-height 防止超出视口 */
+.modal-box {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* modal-body 可滚动 */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* wide 变体确保宽度够 */
+.modal-box--wide {
+  width: min(560px, 100vw - 32px) !important;
+}
+
+/* header 不缩，body 填充剩余空间并可滚动 */
+.modal-header {
+  flex-shrink: 0;
+}
+
+/* 手机端 modal 全宽 */
+@media (max-width: 520px) {
+  .modal-box,
+  .modal-box--wide {
+    width: calc(100vw - 24px) !important;
+    max-width: 100% !important;
+    max-height: 80vh;
+  }
 }
 
 /* Storage list */

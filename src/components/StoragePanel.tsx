@@ -59,7 +59,7 @@ export default function StoragePanel() {
       </button>
 
       {open && (
-        <div className="modal-overlay" style={{ zIndex: 500 }} onClick={() => setOpen(false)}>
+        <div className="modal-overlay" onClick={() => setOpen(false)}>
           <div className="modal-box modal-box--wide" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>暂存区 {files.length > 0 && `(${files.length})`}</h3>
