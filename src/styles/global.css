@@ -742,24 +742,6 @@ a:hover {
   box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.5);
 }
 
-.stats-fab-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
-  background: var(--red);
-  color: white;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-  border: 2px solid var(--bg-card);
-}
-
 .stats-panel {
   position: fixed;
   right: 20px;

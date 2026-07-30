@@ -15,10 +15,10 @@ export default function StatsWidget() {
     if (open) void refresh();
   }, [open, refresh]);
 
-  // 定时刷新在线人数
+  // 定时刷新统计数据（打开时才轮询，关闭即停止）
   useEffect(() => {
     if (!open) return;
-    const timer = setInterval(refresh, 10000);
+    const timer = setInterval(refresh, 30000);
     return () => clearInterval(timer);
   }, [open, refresh]);
 
@@ -31,9 +31,6 @@ export default function StatsWidget() {
         title="网站统计"
       >
         <IconChartBar size={20} stroke={2} />
-        {stats && stats.onlineNow > 0 && (
-          <span className="stats-fab-badge">{stats.onlineNow}</span>
-        )}
       </button>
 
       {/* 展开面板 */}
