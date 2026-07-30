@@ -279,7 +279,7 @@ export default function InsightPage() {
         <div className="card-body">
           <div className="form-group">
             <label>一句话描述你想让 Agent 做什么</label>
-            <textarea value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} rows={4} style={{ width: "100%", padding: 8, borderRadius: 6, border: "1px solid var(--stroke)", background: "var(--bg-hover)", color: "var(--text-primary)", fontFamily: "var(--font)", fontSize: 14, resize: "vertical" }} />
+            <textarea value={userPrompt} onChange={(e) => setUserPrompt(e.target.value)} rows={4} />
           </div>
           <div className="btn-row">
             {!running ? (

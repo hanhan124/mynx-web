@@ -462,7 +462,8 @@
 
 .form-group select,
 .form-group input,
-.form-group input[type="number"] {
+.form-group input[type="number"],
+.form-group textarea {
   width: 100%;
   padding: 5px 11px;
   border: 1px solid var(--border-strong, var(--stroke-strong));
@@ -475,6 +476,13 @@
   height: 32px;
 }
 
+.form-group textarea {
+  height: auto;
+  cursor: text;
+  resize: vertical;
+  line-height: 1.5;
+}
+
 .form-group select {
   padding-right: 24px;
   appearance: none;
@@ -484,7 +492,8 @@
 }
 
 .form-group select:focus,
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: var(--focus-ring);
@@ -1477,27 +1486,6 @@
   font-size: 11px;
   color: var(--text-tertiary);
   overflow-wrap: anywhere;
-}
-
-.insight-textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 8px 10px;
-  font-family: var(--font);
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-primary);
-  background: var(--fill-control);
-  border: 1px solid var(--stroke);
-  border-radius: var(--radius-control);
-  resize: vertical;
-  min-height: 84px;
-}
-
-.insight-textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .insight-files {
