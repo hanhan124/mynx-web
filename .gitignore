@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .vercel/
+
+# autoglm-browser-agent local config
+config/

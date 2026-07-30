@@ -441,7 +441,7 @@ a:hover {
 }
 
 .home-footer {
-  margin-top: 40px;
+  margin-top: auto;
   padding-top: 20px;
   border-top: 1px solid var(--separator);
   display: flex;
@@ -677,7 +677,7 @@ a:hover {
 
   /* 首页页脚 */
   .home-footer {
-    margin-top: 28px;
+    margin-top: auto;
     padding-top: 16px;
   }
 
