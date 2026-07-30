@@ -7,7 +7,10 @@
   padding: 0 24px 16px;
   max-width: 400px;
   margin: 0 auto;
-  min-height: 100%;
+  /* 撑满 .app-main 可视高度（视口减去 40px 标题栏），
+     让 .home-footer 的 margin-top:auto 把页脚推到底部 */
+  min-height: calc(100vh - 40px);
+  min-height: calc(100dvh - 40px);
   padding-top: 8vh;
 }
 
