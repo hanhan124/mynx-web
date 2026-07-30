@@ -120,7 +120,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   padding: 10px 16px;
   background: var(--bg-card);
   background-image: var(--surface-gradient);
@@ -194,7 +195,10 @@
 }
 
 .weather-divider {
-  flex: 1;
+  width: 1px;
+  height: 16px;
+  background: var(--separator);
+  flex-shrink: 0;
 }
 
 .weather-city {
