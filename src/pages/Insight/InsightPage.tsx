@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { IconBrain, IconFileSpreadsheet, IconKey, IconBolt, IconDownload } from "@tabler/icons-react";
 import { showToast } from "@/components/Toast";
+import { useDropZone } from "@/hooks/useDropZone";
 import * as XLSX from "xlsx";
 import MarkdownView from "./markdown-view";
 import { markdownToPrintableHtml } from "@/lib/report-print";
@@ -136,6 +137,30 @@ export default function InsightPage() {
     }
   }, [genes.length]);
 
+  const handleDrop = useCallback((files: File[]) => {
+    const f = files.find((p) => /\.(xlsx|xls)$/i.test(p.name));
+    if (f) void handleFile(f);
+  }, [handleFile]);
+  const { dropRef, isDragOver } = useDropZone(handleDrop);
+
+  const handleClearFile = useCallback(() => {
+    setFileName("");
+    setMatrixMarkdown("");
+    setGenes([]);
+    setResult(null);
+  }, []);
+
+  const openDialog = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".xlsx,.xls";
+    input.onchange = () => {
+      const f = input.files?.[0];
+      if (f) void handleFile(f);
+    };
+    input.click();
+  }, [handleFile]);
+
   const handleRun = useCallback(async () => {
     if (!matrixMarkdown) {
       showToast("请先选择含 qPCR 结果的 Excel 文件", "error");
@@ -255,15 +280,30 @@ export default function InsightPage() {
         </div>
         <div className="card-body">
           <div
-            className="file-drop"
-            onDrop={(e) => { e.preventDefault(); const f = Array.from(e.dataTransfer.files).find((f) => /\.(xlsx|xls)$/i.test(f.name)); if (f) void handleFile(f); }}
-            onDragOver={(e) => e.preventDefault()}
-            onClick={() => document.getElementById("insight-file-input")?.click()}
+            ref={dropRef}
+            className={`file-display${isDragOver ? " file-display--drag" : ""}`}
+            onClick={openDialog}
+            style={{ cursor: "pointer" }}
           >
-            <input id="insight-file-input" type="file" accept=".xlsx,.xls" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); }} />
-            <div className="file-drop-icon">📄</div>
-            <div className="file-drop-text">{fileName || "选择含 Summary_All_Genes 的 xlsx"}</div>
+            <div className="file-icon" style={{ background: "#34c759" }}>
+              <IconFileSpreadsheet size={20} color="white" stroke={1.75} />
+            </div>
+            <div className="file-info">
+              <div className="file-name">{fileName || "未选择文件"}</div>
+              <div className="file-path">{fileName || "xlsx / xls（含 Summary_All_Genes）"}</div>
+            </div>
+            {isDragOver && <span className="drop-hint">释放以导入</span>}
           </div>
+
+          <div className="btn-row">
+            <button className="btn btn-primary" onClick={openDialog}>打开</button>
+            {fileName && (
+              <button className="btn" style={{ marginLeft: "auto", color: "var(--red)" }} onClick={handleClearFile}>
+                清空
+              </button>
+            )}
+          </div>
+
           {matrixMarkdown && (
             <div style={{ marginTop: 12 }}>
               <div className="meta">{genes.length} 个基因</div>
